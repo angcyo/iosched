@@ -17,10 +17,10 @@
 package com.android.grafika;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.TextureView;
 
 import java.io.IOException;
@@ -47,6 +47,11 @@ public class LiveCameraActivity extends Activity implements TextureView.SurfaceT
     }
 
     @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         mCamera = Camera.open();
         if (mCamera == null) {
@@ -55,9 +60,18 @@ public class LiveCameraActivity extends Activity implements TextureView.SurfaceT
             throw new RuntimeException("Default camera not available");
         }
 
+        int orientation = getRequestedOrientation();
+
+        Camera.Parameters parameters = mCamera.getParameters();
+        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        mCamera.setParameters(parameters);
+
         try {
             mCamera.setPreviewTexture(surface);
             mCamera.startPreview();
+
+//            mCamera.setDisplayOrientation(orientation);
+            mCamera.setDisplayOrientation(90);
         } catch (IOException ioe) {
             // Something bad happened
         }

@@ -54,6 +54,8 @@
         </activity>
         <activity
             android:name="com.android.grafika.LiveCameraActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_live_camera" >
         </activity>
         <activity
