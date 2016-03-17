@@ -72,6 +72,7 @@ public class PlayMovieActivity extends Activity implements OnItemSelectedListene
         // Need to create one of these fancy ArrayAdapter thingies, and specify the generic layout
         // for the widget itself.
         mMovieFiles = MiscUtils.getFiles(getFilesDir(), "*.mp4");
+        MiscUtils.getDisplayRefreshNsec(this);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item, mMovieFiles);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -236,7 +237,7 @@ public class PlayMovieActivity extends Activity implements OnItemSelectedListene
         Matrix txform = new Matrix();
         mTextureView.getTransform(txform);
         txform.setScale((float) newWidth / viewWidth, (float) newHeight / viewHeight);
-        //txform.postRotate(10);          // just for fun
+        txform.postRotate(10);          // just for fun
         txform.postTranslate(xoff, yoff);
         mTextureView.setTransform(txform);
     }

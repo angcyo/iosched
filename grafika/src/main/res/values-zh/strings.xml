@@ -71,7 +71,7 @@
     <string name="glesVersionLabel">"GLES version: "</string>
     <string name="glesVersionValue">"?"</string>
     <string name="useBlitFramebuffer">Use glBlitFramebuffer() when recording</string>
-    <string name="nowRecording">" [RECORDING]"</string>
+    <string name="nowRecording">" [录制]"</string>
     <string name="nowSaving">" [saving]"</string>
     <string name="recDrawTwice">Rec: draw twice</string>
     <string name="recOffscreen">Rec: FBO blit x2</string>

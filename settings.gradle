@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
-include ':android', ':server'
+include ':android', ':server', ':udpserver'
 include ':grafika'
+include ':android_packages_apps_Focal'

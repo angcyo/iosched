@@ -16,6 +16,7 @@
 
 package com.android.grafika;
 
+import android.app.Activity;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES20;
@@ -29,7 +30,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.app.Activity;
 
 import com.android.grafika.gles.EglCore;
 import com.android.grafika.gles.FullFrameRect;
@@ -56,105 +56,49 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
         SurfaceTexture.OnFrameAvailableListener {
     private static final String TAG = MainActivity.TAG;
 
-    private static final int VIDEO_WIDTH = 1280;  // dimensions for 720p video
-    private static final int VIDEO_HEIGHT = 720;
+    private static final int VIDEO_WIDTH = 1920;  // dimensions for 720p video
+    private static final int VIDEO_HEIGHT = 1080;
     private static final int DESIRED_PREVIEW_FPS = 15;
-
+    private final float[] mTmpMatrix = new float[16];
+    long fileIndex = 0l;
     private EglCore mEglCore;
     private WindowSurface mDisplaySurface;
     private SurfaceTexture mCameraTexture;  // receives the output from the camera preview
     private FullFrameRect mFullFrameBlit;
-    private final float[] mTmpMatrix = new float[16];
     private int mTextureId;
     private int mFrameNum;
-
     private Camera mCamera;
     private int mCameraPreviewThousandFps;
-
     private File mOutputFile;
     private CircularEncoder mCircEncoder;
     private WindowSurface mEncoderSurface;
     private boolean mFileSaveInProgress;
-
     private MainHandler mHandler;
     private float mSecondsOfVideo;
 
     /**
-     * Custom message handler for main UI thread.
-     * <p>
-     * Used to handle camera preview "frame available" notifications, and implement the
-     * blinking "recording" text.  Receives callback messages from the encoder thread.
+     * Adds a bit of extra stuff to the display just to give it flavor.
      */
-    private static class MainHandler extends Handler implements CircularEncoder.Callback {
-        public static final int MSG_BLINK_TEXT = 0;
-        public static final int MSG_FRAME_AVAILABLE = 1;
-        public static final int MSG_FILE_SAVE_COMPLETE = 2;
-        public static final int MSG_BUFFER_STATUS = 3;
-
-        private WeakReference<ContinuousCaptureActivity> mWeakActivity;
-
-        public MainHandler(ContinuousCaptureActivity activity) {
-            mWeakActivity = new WeakReference<ContinuousCaptureActivity>(activity);
+    private static void drawExtra(int frameNum, int width, int height) {
+        // We "draw" with the scissor rect and clear calls.  Note this uses window coordinates.
+        int val = frameNum % 3;
+        switch (val) {
+            case 0:
+                GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+                break;
+            case 1:
+                GLES20.glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+                break;
+            case 2:
+                GLES20.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+                break;
         }
 
-        // CircularEncoder.Callback, called on encoder thread
-        @Override
-        public void fileSaveComplete(int status) {
-            sendMessage(obtainMessage(MSG_FILE_SAVE_COMPLETE, status, 0, null));
-        }
-
-        // CircularEncoder.Callback, called on encoder thread
-        @Override
-        public void bufferStatus(long totalTimeMsec) {
-            sendMessage(obtainMessage(MSG_BUFFER_STATUS,
-                    (int) (totalTimeMsec >> 32), (int) totalTimeMsec));
-        }
-
-
-        @Override
-        public void handleMessage(Message msg) {
-            ContinuousCaptureActivity activity = mWeakActivity.get();
-            if (activity == null) {
-                Log.d(TAG, "Got message for dead activity");
-                return;
-            }
-
-            switch (msg.what) {
-                case MSG_BLINK_TEXT: {
-                    TextView tv = (TextView) activity.findViewById(R.id.recording_text);
-
-                    // Attempting to make it blink by using setEnabled() doesn't work --
-                    // it just changes the color.  We want to change the visibility.
-                    int visibility = tv.getVisibility();
-                    if (visibility == View.VISIBLE) {
-                        visibility = View.INVISIBLE;
-                    } else {
-                        visibility = View.VISIBLE;
-                    }
-                    tv.setVisibility(visibility);
-
-                    int delay = (visibility == View.VISIBLE) ? 1000 : 200;
-                    sendEmptyMessageDelayed(MSG_BLINK_TEXT, delay);
-                    break;
-                }
-                case MSG_FRAME_AVAILABLE: {
-                    activity.drawFrame();
-                    break;
-                }
-                case MSG_FILE_SAVE_COMPLETE: {
-                    activity.fileSaveComplete(msg.arg1);
-                    break;
-                }
-                case MSG_BUFFER_STATUS: {
-                    long duration = (((long) msg.arg1) << 32) |
-                                    (((long) msg.arg2) & 0xffffffffL);
-                    activity.updateBufferStatus(duration);
-                    break;
-                }
-                default:
-                    throw new RuntimeException("Unknown message " + msg.what);
-            }
-        }
+        int xpos = (int) (width * ((frameNum % 100) / 100.0f));
+        GLES20.glEnable(GLES20.GL_SCISSOR_TEST);
+        GLES20.glScissor(xpos, 0, width / 32, height / 32);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
     }
 
     @Override
@@ -169,7 +113,6 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
         mHandler = new MainHandler(this);
         mHandler.sendEmptyMessageDelayed(MainHandler.MSG_BLINK_TEXT, 1500);
 
-        mOutputFile = new File(getFilesDir(), "continuous-capture.mp4");
         mSecondsOfVideo = 0.0f;
         updateControls();
     }
@@ -228,8 +171,11 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
         int numCameras = Camera.getNumberOfCameras();
         for (int i = 0; i < numCameras; i++) {
             Camera.getCameraInfo(i, info);
-            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+//            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 mCamera = Camera.open(i);
+
+                mCamera.setDisplayOrientation(90);
                 break;
             }
         }
@@ -251,6 +197,7 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
         // Give the camera a hint that we're recording video.  This can have a big
         // impact on frame rate.
         parms.setRecordingHint(true);
+        parms.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
 
         mCamera.setParameters(parms);
 
@@ -310,8 +257,14 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
         String str = getString(R.string.nowSaving);
         tv.setText(str);
 
+        mOutputFile = new File(getFilesDir(), getSaveFileName());
 
         mCircEncoder.saveVideo(mOutputFile);
+    }
+
+    private String getSaveFileName() {
+        fileIndex++;
+        return "continuous-capture_" + fileIndex + ".mp4";
     }
 
     /**
@@ -453,21 +406,80 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
     }
 
     /**
-     * Adds a bit of extra stuff to the display just to give it flavor.
+     * Custom message handler for main UI thread.
+     * <p>
+     * Used to handle camera preview "frame available" notifications, and implement the
+     * blinking "recording" text.  Receives callback messages from the encoder thread.
      */
-    private static void drawExtra(int frameNum, int width, int height) {
-        // We "draw" with the scissor rect and clear calls.  Note this uses window coordinates.
-        int val = frameNum % 3;
-        switch (val) {
-            case 0:  GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);   break;
-            case 1:  GLES20.glClearColor(0.0f, 1.0f, 0.0f, 1.0f);   break;
-            case 2:  GLES20.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);   break;
+    private static class MainHandler extends Handler implements CircularEncoder.Callback {
+        public static final int MSG_BLINK_TEXT = 0;
+        public static final int MSG_FRAME_AVAILABLE = 1;
+        public static final int MSG_FILE_SAVE_COMPLETE = 2;
+        public static final int MSG_BUFFER_STATUS = 3;
+
+        private WeakReference<ContinuousCaptureActivity> mWeakActivity;
+
+        public MainHandler(ContinuousCaptureActivity activity) {
+            mWeakActivity = new WeakReference<ContinuousCaptureActivity>(activity);
         }
 
-        int xpos = (int) (width * ((frameNum % 100) / 100.0f));
-        GLES20.glEnable(GLES20.GL_SCISSOR_TEST);
-        GLES20.glScissor(xpos, 0, width / 32, height / 32);
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-        GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+        // CircularEncoder.Callback, called on encoder thread
+        @Override
+        public void fileSaveComplete(int status) {
+            sendMessage(obtainMessage(MSG_FILE_SAVE_COMPLETE, status, 0, null));
+        }
+
+        // CircularEncoder.Callback, called on encoder thread
+        @Override
+        public void bufferStatus(long totalTimeMsec) {
+            sendMessage(obtainMessage(MSG_BUFFER_STATUS,
+                    (int) (totalTimeMsec >> 32), (int) totalTimeMsec));
+        }
+
+
+        @Override
+        public void handleMessage(Message msg) {
+            ContinuousCaptureActivity activity = mWeakActivity.get();
+            if (activity == null) {
+                Log.d(TAG, "Got message for dead activity");
+                return;
+            }
+
+            switch (msg.what) {
+                case MSG_BLINK_TEXT: {
+                    TextView tv = (TextView) activity.findViewById(R.id.recording_text);
+
+                    // Attempting to make it blink by using setEnabled() doesn't work --
+                    // it just changes the color.  We want to change the visibility.
+                    int visibility = tv.getVisibility();
+                    if (visibility == View.VISIBLE) {
+                        visibility = View.INVISIBLE;
+                    } else {
+                        visibility = View.VISIBLE;
+                    }
+                    tv.setVisibility(visibility);
+
+                    int delay = (visibility == View.VISIBLE) ? 1000 : 200;
+                    sendEmptyMessageDelayed(MSG_BLINK_TEXT, delay);
+                    break;
+                }
+                case MSG_FRAME_AVAILABLE: {
+                    activity.drawFrame();
+                    break;
+                }
+                case MSG_FILE_SAVE_COMPLETE: {
+                    activity.fileSaveComplete(msg.arg1);
+                    break;
+                }
+                case MSG_BUFFER_STATUS: {
+                    long duration = (((long) msg.arg1) << 32) |
+                            (((long) msg.arg2) & 0xffffffffL);
+                    activity.updateBufferStatus(duration);
+                    break;
+                }
+                default:
+                    throw new RuntimeException("Unknown message " + msg.what);
+            }
+        }
     }
 }
