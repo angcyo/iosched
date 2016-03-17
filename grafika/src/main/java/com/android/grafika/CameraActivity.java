@@ -17,18 +17,22 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Handler;
 
 public class CameraActivity extends Activity implements SurfaceHolder.Callback {
     public static final String ENCODING = "h264";
+    public static CameraActivity activity;
     public static byte[] SPS = null;
     public static byte[] PPS = null;
     public static int frameID = 0;
@@ -50,6 +54,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
     BlockingQueue<Frame> queue = new ArrayBlockingQueue<Frame>(100);
     //int width=320,height=240;
     int width = 1920, height = 1080;
+    UdpSocket socket;
     private PlayerThread mPlayer = null;
 
     /**
@@ -154,7 +159,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        activity = this;
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         ll = new android.widget.LinearLayout(getApplicationContext());
@@ -173,8 +178,6 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
         socket = new UdpSocket();
         new Thread(socket).start();
     }
-
-    UdpSocket socket;
 
     /**
      * ========================================================================
@@ -407,14 +410,15 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
         }
     }
 
-    public static class UdpSocket implements Runnable{
+    public static class UdpSocket implements Runnable {
 
         public static final String Ip = "192.168.124.78";
         public static final int Port = 9876;
         private static DatagramSocket socket;
         private static InetAddress addr;
-
+        private static boolean isAbort = false;
         byte[] data;
+        Vector<byte[]> datas = new Vector<>();
 
         public static void sendData(byte[] data) {
             try {
@@ -431,24 +435,65 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
                 packet.setAddress(addr);
                 packet.setPort(Port);
                 socket.send(packet);
+
+                //
+                writeToFile(data);
+
                 Log.e("UdpSocket", "send length " + data.length);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
+        public static void writeToFile(byte[] data) {
+            if (isAbort) {
+                return;
+            }
+
+            DataOutputStream dataOutputStream = null;
+            try {
+                dataOutputStream = new DataOutputStream(new FileOutputStream(
+                        activity.getExternalCacheDir().getAbsolutePath() + File.separator + "2016-3-17",
+                        true));
+//                FileOutputStream fileOutputStream = new FileOutputStream("");
+//                fileOutputStream.write(data);
+                dataOutputStream.write(data);
+                dataOutputStream.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (dataOutputStream != null) {
+                        dataOutputStream.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+//            isAbort = true;
+        }
+
 
         public void setData(byte[] data) {
             synchronized (this) {
-                this.data = data;
+                this.datas.add(data);
             }
         }
 
         @Override
         public void run() {
             while (true) {
-                if (data != null) {
+//                if (data != null) {
+//                    sendData(data);
+//                    writeToFile(data);
+//                    data = null;
+//                }
+                if (!datas.isEmpty()) {
+                    byte[] data = datas.remove(0);
                     sendData(data);
+//                    writeToFile(null);
+//                    data = null;
                 }
             }
         }
@@ -519,6 +564,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
                 Camera.Parameters p = mCamera.getParameters();
                 p.setPreviewSize(width, height);
                 p.setPreviewFormat(ImageFormat.YV12);
+                p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
                 mCamera.setParameters(p);
                 mCamera.setPreviewDisplay(holder);
                 mCamera.unlock();
@@ -540,6 +586,10 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
+            mCamera.stopPreview();
+            mCamera.unlock();
+            mCamera.release();
+            mCamera = null;
         }
     }
 

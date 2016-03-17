@@ -22,13 +22,17 @@ public class Server {
         private static InetAddress addr;
         byte[] data = new byte[10240];
 
-        public static void writeToFile(byte[] data) {
+        public static void writeToFile(byte[] data, int len) {
+            if (data == null || data.length == 0) {
+                return;
+            }
+
             DataOutputStream dataOutputStream = null;
             try {
                 dataOutputStream = new DataOutputStream(new FileOutputStream("2016-3-17", true));
 //                FileOutputStream fileOutputStream = new FileOutputStream("");
 //                fileOutputStream.write(data);
-                dataOutputStream.write(data);
+                dataOutputStream.write(data, 0 , len);
                 dataOutputStream.flush();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -56,11 +60,12 @@ public class Server {
                 DatagramPacket packet = new DatagramPacket(data, data.length);
 //                packet.setAddress(addr);
 //                packet.setPort(Port);
-
                 System.out.println("receive...  ");
                 socket.receive(packet);
 //                socket.
-                writeToFile(data);
+                synchronized (this) {
+                    writeToFile(data, packet.getLength());
+                }
 //                socket.send(packet);
                 System.out.println("receive length " + data.length + "    --packet length  " + packet.getLength());
             } catch (IOException e) {
