@@ -130,6 +130,7 @@ public class CameraCaptureActivity extends Activity
     static final int FILTER_SHARPEN = 3;
     static final int FILTER_EDGE_DETECT = 4;
     static final int FILTER_EMBOSS = 5;
+    static final int FILTER_TEST = 6;
 
     private GLSurfaceView mGLView;
     private CameraSurfaceRenderer mRenderer;
@@ -182,7 +183,8 @@ public class CameraCaptureActivity extends Activity
         Log.d(TAG, "onResume -- acquiring camera");
         super.onResume();
         updateControls();
-        openCamera(1280, 720);      // updates mCameraPreviewWidth/Height
+        openCamera(1920, 1080);      // updates mCameraPreviewWidth/Height
+//        openCamera(1280, 720);      // updates mCameraPreviewWidth/Height
 
         // Set the preview aspect ratio.
         AspectFrameLayout layout = (AspectFrameLayout) findViewById(R.id.cameraPreview_afl);
@@ -252,7 +254,8 @@ public class CameraCaptureActivity extends Activity
         int numCameras = Camera.getNumberOfCameras();
         for (int i = 0; i < numCameras; i++) {
             Camera.getCameraInfo(i, info);
-            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+//            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
                 mCamera = Camera.open(i);
                 break;
             }
@@ -265,7 +268,10 @@ public class CameraCaptureActivity extends Activity
             throw new RuntimeException("Unable to open camera");
         }
 
+        mCamera.setDisplayOrientation(90);
+
         Camera.Parameters parms = mCamera.getParameters();
+        parms.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
 
         CameraUtils.choosePreviewSize(parms, desiredWidth, desiredHeight);
 
@@ -536,10 +542,17 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
                 break;
             case CameraCaptureActivity.FILTER_BLUR:
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT;
+//                kernel = new float[] {
+//                        1f/16f, 2f/16f, 1f/16f,
+//                        2f/16f, 4f/16f, 2f/16f,
+//                        1f/16f, 2f/16f, 1f/16f };
+
+                float value = 80f;
                 kernel = new float[] {
-                        1f/16f, 2f/16f, 1f/16f,
-                        2f/16f, 4f/16f, 2f/16f,
-                        1f/16f, 2f/16f, 1f/16f };
+                        1f/value, 1f/value, 1f/value,
+                        1f/value, 1f/value, 1f/value,
+                        1f/value, 1f/value, 1f/value };
+
                 break;
             case CameraCaptureActivity.FILTER_SHARPEN:
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT;
@@ -562,6 +575,10 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
                         0f, -1f, 0f,
                         0f, 0f, -1f };
                 colorAdj = 0.5f;
+                break;
+            case CameraCaptureActivity.FILTER_TEST:
+                programType = Texture2dProgram.ProgramType.TEXTURE_EXT;
+
                 break;
             default:
                 throw new RuntimeException("Unknown filter mode " + mNewFilter);

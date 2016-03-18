@@ -17,6 +17,8 @@
 package com.android.grafika;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES20;
@@ -26,8 +28,10 @@ import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -101,10 +105,16 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
         GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
     }
 
+    TextureView textureView;
+    ImageView imageView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_continuous_capture);
+
+        textureView = (TextureView) findViewById(R.id.textureView);
+        imageView = (ImageView) findViewById(R.id.image);
 
         SurfaceView sv = (SurfaceView) findViewById(R.id.continuousCapture_surfaceView);
         SurfaceHolder sh = sv.getHolder();
@@ -298,6 +308,7 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
         updateControls();
     }
 
+    byte[] bufferByte = new byte[2048000];
 
     @Override   // SurfaceHolder.Callback
     public void surfaceCreated(SurfaceHolder holder) {
@@ -317,15 +328,42 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
         mFullFrameBlit = new FullFrameRect(
                 new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
         mTextureId = mFullFrameBlit.createTextureObject();
+
+
         mCameraTexture = new SurfaceTexture(mTextureId);
         mCameraTexture.setOnFrameAvailableListener(this);
 
         Log.d(TAG, "starting camera preview");
         try {
             mCamera.setPreviewTexture(mCameraTexture);
+//            mCamera.setPreviewTexture(textureView.getSurfaceTexture());
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
+
+//        mCamera.addCallbackBuffer(bufferByte);
+//        mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
+//            @Override
+//            public void onPreviewFrame(byte[] data, Camera camera) {
+//                Log.d("angcyo", data.length + " ------ " + bufferByte.length);
+//            }
+//        });
+
+        mCamera.setPreviewCallback(new Camera.PreviewCallback() {
+            @Override
+            public void onPreviewFrame(byte[] data, Camera camera) {
+                Log.d("angcyo preview", data.length + " ------ ");
+                imageView.setImageBitmap(getBitmap(data));
+//                try {
+//                    mDisplaySurface.saveFrame(new File(getExternalCacheDir(), "angcyo_03_18"));
+////                    imageView.setImageBitmap();
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+
+            }
+        });
+
         mCamera.startPreview();
 
         // TODO: adjust bit rate based on frame rate?
@@ -351,6 +389,11 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
     @Override   // SurfaceHolder.Callback
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.d(TAG, "surfaceDestroyed holder=" + holder);
+        if (mCamera != null) {
+            mCamera.stopPreview();
+            mCamera.release();
+            mCamera = null;
+        }
     }
 
     @Override   // SurfaceTexture.OnFrameAvailableListener; runs on arbitrary thread
@@ -481,5 +524,10 @@ public class ContinuousCaptureActivity extends Activity implements SurfaceHolder
                     throw new RuntimeException("Unknown message " + msg.what);
             }
         }
+    }
+
+    public static Bitmap getBitmap(byte[] data) {
+        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+        return bitmap;
     }
 }
