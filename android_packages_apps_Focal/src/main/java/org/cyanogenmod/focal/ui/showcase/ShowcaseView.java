@@ -48,9 +48,9 @@ import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
-import fr.xplod.focal.R;
-
 import java.lang.reflect.Field;
+
+import fr.xplod.focal.R;
 
 import static org.cyanogenmod.focal.ui.showcase.AnimationUtils.AnimationEndListener;
 import static org.cyanogenmod.focal.ui.showcase.AnimationUtils.AnimationStartListener;
@@ -729,6 +729,7 @@ public class ShowcaseView extends RelativeLayout implements View.OnClickListener
                         "hasShot" + getConfigOptions().showcaseId, true).commit();
             }
         }
+        hide();
         hide();
     }
 

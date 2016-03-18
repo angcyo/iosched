@@ -17,3 +17,4 @@
 include ':android', ':server', ':udpserver'
 include ':grafika'
 include ':android_packages_apps_Focal'
+include ':openCamera'
