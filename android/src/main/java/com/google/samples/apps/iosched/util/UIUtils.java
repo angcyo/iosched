@@ -333,7 +333,7 @@ public class UIUtils {
 
     /**
      * If an activity's intent is for a Google I/O web URL that the app can handle
-     * natively, this method translates the intent to the equivalent native intent.
+     * natively, this method translates the intent to the equivalent cge intent.
      */
     public static void tryTranslateHttpIntent(Activity activity) {
         Intent intent = activity.getIntent();

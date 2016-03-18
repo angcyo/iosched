@@ -304,7 +304,7 @@ public class PreshotCapturePlugin extends PluginCapture
 	private int cnt = 0;
 	private double fpsInterval = 0;
 	
-	// starts buffering to native buffer
+	// starts buffering to cge buffer
 	void StartBuffering()
 	{
 
@@ -333,7 +333,7 @@ public class PreshotCapturePlugin extends PluginCapture
 					Integer.parseInt(PreShotInterval), 0);
 			if (secondsAllocated == 0)
 			{
-				Log.i("Preshot capture", "StartBuffering failed, can't allocate native buffer!");
+				Log.i("Preshot capture", "StartBuffering failed, can't allocate cge buffer!");
 				return;
 			}
 			PluginManager.getInstance().addToSharedMem("IsSlowMode" + SessionID, "false");
@@ -354,7 +354,7 @@ public class PreshotCapturePlugin extends PluginCapture
 					Integer.parseInt(PreShotInterval), 1);
 			if (secondsAllocated == 0)
 			{
-				Log.i("Preshot capture", "StartBuffering failed, can't allocate native buffer!");
+				Log.i("Preshot capture", "StartBuffering failed, can't allocate cge buffer!");
 				return;
 			}
 			PluginManager.getInstance().addToSharedMem("cameraMirrored" + SessionID, String.valueOf(CameraController.isFrontCamera()));

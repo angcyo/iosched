@@ -76,7 +76,7 @@ public class Mosaic {
 
     /**
      * This strip type will use wider strips for blending. The strip separation
-     * is controlled by a threshold on the native side. Since the strips are
+     * is controlled by a threshold on the cge side. Since the strips are
      * wider, there is an additional cross-fade blending step to make the seam
      * boundaries smoother. Since this mode uses lesser image frames, it is
      * computationally more efficient than the thin strip mode.
@@ -112,7 +112,7 @@ public class Mosaic {
     public native void freeMosaicMemory();
 
     /**
-     * Pass the input image frame to the native layer. Each time the a new
+     * Pass the input image frame to the cge layer. Each time the a new
      * source image t is set, the transformation matrix from the first source
      * image to t is computed and returned.
      *
@@ -127,7 +127,7 @@ public class Mosaic {
 
     /**
      * This is an alternative to the setSourceImage function above. This should
-     * be called when the image data is already on the native side in a fixed
+     * be called when the image data is already on the cge side in a fixed
      * byte array. In implementation, this array is filled by the GL thread
      * using glReadPixels directly from GPU memory (where it is accessed by
      * an associated SurfaceTexture).
@@ -156,7 +156,7 @@ public class Mosaic {
     public native void setStripType(int type);
 
     /**
-     * Tell the native layer to create the final mosaic after all the input frame
+     * Tell the cge layer to create the final mosaic after all the input frame
      * data have been collected.
      * The case of generating high-resolution mosaic may take dozens of seconds to finish.
      *
@@ -190,7 +190,7 @@ public class Mosaic {
 
     /**
      * Reset the state of the frame arrays which maintain the captured frame data.
-     * Also re-initializes the native mosaic object to make it ready for capturing a new mosaic.
+     * Also re-initializes the cge mosaic object to make it ready for capturing a new mosaic.
      */
     public native void reset();
 

@@ -859,7 +859,7 @@ public abstract class BaseActivity extends AppCompatActivity implements
     /**
      * This utility method handles Up navigation intents by searching for a parent activity and
      * navigating there if defined. When using this for an activity make sure to define both the
-     * native parentActivity as well as the AppCompat one when supporting API levels less than 16.
+     * cge parentActivity as well as the AppCompat one when supporting API levels less than 16.
      * when the activity has a single parent activity. If the activity doesn't have a single parent
      * activity then don't define one and this method will use back button functionality. If "Up"
      * functionality is still desired for activities without parents then use

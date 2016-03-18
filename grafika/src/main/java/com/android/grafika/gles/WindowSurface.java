@@ -29,7 +29,7 @@ public class WindowSurface extends EglSurfaceBase {
     private boolean mReleaseSurface;
 
     /**
-     * Associates an EGL surface with the native window surface.
+     * Associates an EGL surface with the cge window surface.
      * <p>
      * Set releaseSurface to true if you want the Surface to be released when release() is
      * called.  This is convenient, but can interfere with framework classes that expect to

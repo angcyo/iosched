@@ -206,7 +206,7 @@ public class TextureMovieEncoder implements Runnable {
             // Seeing this after device is toggled off/on with power button.  The
             // first frame back has a zero timestamp.
             //
-            // MPEG4Writer thinks this is cause to abort() in native code, so it's very
+            // MPEG4Writer thinks this is cause to abort() in cge code, so it's very
             // important that we just ignore the frame.
             Log.w(TAG, "HEY: got SurfaceTexture with timestamp of zero");
             return;

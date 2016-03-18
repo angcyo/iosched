@@ -945,7 +945,7 @@ public class VideoCapturePlugin extends PluginCapture
 							CamcorderProfile prof = CamcorderProfile.get(CameraController.getCameraIndex(), CamcorderProfile.QUALITY_HIGH);
 							prof.videoFrameWidth = 3840;
 							prof.videoFrameHeight = 2160;
-							prof.videoBitRate = (int)(prof.videoBitRate*2.8); // need a higher bitrate for the better quality - this is roughly based on the bitrate used by an S5's native camera app at 4K (47.6 Mbps, compared to 16.9 Mbps which is what's returned by the QUALITY_HIGH profile)
+							prof.videoBitRate = (int)(prof.videoBitRate*2.8); // need a higher bitrate for the better quality - this is roughly based on the bitrate used by an S5's cge camera app at 4K (47.6 Mbps, compared to 16.9 Mbps which is what's returned by the QUALITY_HIGH profile)
 							if (ApplicationScreen.isMicrophonePermissionGranted())
 							{
 								mMediaRecorder.setProfile(prof);

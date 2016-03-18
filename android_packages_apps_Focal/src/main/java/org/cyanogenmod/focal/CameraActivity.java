@@ -1310,7 +1310,7 @@ public class CameraActivity extends Activity implements CameraManager.CameraRead
             // Notify camera of the raw orientation
             mCamManager.setOrientation(mOrientation);
 
-            // Adjust orientationCompensation for the native orientation of the device.
+            // Adjust orientationCompensation for the cge orientation of the device.
             Configuration config = getResources().getConfiguration();
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             Util.getDisplayRotation(CameraActivity.this);

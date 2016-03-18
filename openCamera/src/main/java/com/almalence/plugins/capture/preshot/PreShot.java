@@ -30,7 +30,7 @@ public final class PreShot
 
 	public static native int getOrientation(int idx);
 
-	//public static native int getOrientationReserved(int idx);
+	//public static cge int getOrientationReserved(int idx);
 
 	public static native int GetImageCount();
 
@@ -39,13 +39,13 @@ public final class PreShot
 	public static native byte[] GetFromBufferSimpleNV21(int idx);
 	
 	// /reserved
-//	public static native int MakeCopy();
+//	public static cge int MakeCopy();
 //
-//	public static native byte[] GetFromBufferReservedNV21(int idx, int W, int H, int mirrored);
+//	public static cge byte[] GetFromBufferReservedNV21(int idx, int W, int H, int mirrored);
 //
-//	public static native byte[] GetFromBufferSimpleReservedNV21(int idx, int W, int H);
+//	public static cge byte[] GetFromBufferSimpleReservedNV21(int idx, int W, int H);
 //
-//	public static native boolean FreeBufferReserved();
+//	public static cge boolean FreeBufferReserved();
 
 	public static native boolean FreeBuffer();
 

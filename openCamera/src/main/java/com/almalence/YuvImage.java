@@ -41,13 +41,13 @@ public class YuvImage
 
 	/**
 	 * Number of bytes of temp storage we use for communicating between the
-	 * native compressor and the java OutputStream.
+	 * cge compressor and the java OutputStream.
 	 */
 	private static final int	WORKING_COMPRESS_STORAGE	= 4096;
 
 	/**
 	 * Number of bytes of temp storage we use for communicating between the
-	 * native compressor and the java OutputStream for multithreaded encoding.
+	 * cge compressor and the java OutputStream for multithreaded encoding.
 	 */
 	private static final int	WORKING_COMPRESS_STORAGE_MT	= 1024 * 512;
 
@@ -262,7 +262,7 @@ public class YuvImage
 		}
 	}
 
-	// ////////// native methods
+	// ////////// cge methods
 
 	public static native boolean SaveJpegFreeOut(int oriYuv, int format, int width, int height, int[] offsets,
 			int[] strides, int quality, OutputStream stream, byte[] tempStorage);

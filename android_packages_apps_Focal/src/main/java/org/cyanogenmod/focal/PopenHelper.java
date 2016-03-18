@@ -20,7 +20,7 @@
 package org.cyanogenmod.focal;
 
 /**
- * Helper class calling a JNI native popen method to run system
+ * Helper class calling a JNI cge popen method to run system
  * commands
  */
 public class PopenHelper {

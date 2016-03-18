@@ -312,7 +312,7 @@ JNIEXPORT jintArray JNICALL Java_com_almalence_plugins_capture_preshot_PreShot_G
 
 // - move GetFromBufferToShowInSlow jpeg decodings and downscaling into java
 // (it is always a single-image decode, there will always be enough java heap memory),
-// all what is needed - to move data from native heap into java heap
+// all what is needed - to move data from cge heap into java heap
 //
 //show in slow mode
 JNIEXPORT jbyteArray JNICALL Java_com_almalence_plugins_capture_preshot_PreShot_GetFromBufferToShowInSlow

@@ -23,7 +23,7 @@ public class HeapUtil
 {
 
 	/**
-	 * Return information about native heap memory:
+	 * Return information about cge heap memory:
 	 * 
 	 * [0] = megabytes used [1] = megabytes free
 	 */

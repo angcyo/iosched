@@ -29,7 +29,7 @@ public class Texture2dProgram {
     private static final String TAG = GlUtil.TAG;
 
     public enum ProgramType {
-        TEXTURE_2D, TEXTURE_EXT, TEXTURE_EXT_BW, TEXTURE_EXT_FILT
+        TEXTURE_2D, TEXTURE_EXT, TEXTURE_EXT_BW, TEXTURE_EXT_FILT, FRAGMENT_TEST
     }
 
     // Simple vertex shader, used for all programs.
@@ -75,6 +75,296 @@ public class Texture2dProgram {
             "    float color = tc.r * 0.3 + tc.g * 0.59 + tc.b * 0.11;\n" +
             "    gl_FragColor = vec4(color, color, color, 1.0);\n" +
             "}\n";
+
+//    private static final String FRAGMENT_TEST =
+//            "attribute vec4 a_position;\n" +
+//                    "attribute vec2 a_texCoord;\n" +
+//                    " \n" +
+//                    "varying vec2 v_texCoord;\n" +
+//                    "varying vec2 v_blurTexCoords[14];\n" +
+//                    " \n" +
+//                    "void main()\n" +
+//                    "{\n" +
+//                    "    gl_Position = a_position;\n" +
+//                    "    v_texCoord = a_texCoord;\n" +
+//                    "    v_blurTexCoords[ 0] = v_texCoord + vec2(-0.028, 0.0);\n" +
+//                    "    v_blurTexCoords[ 1] = v_texCoord + vec2(-0.024, 0.0);\n" +
+//                    "    v_blurTexCoords[ 2] = v_texCoord + vec2(-0.020, 0.0);\n" +
+//                    "    v_blurTexCoords[ 3] = v_texCoord + vec2(-0.016, 0.0);\n" +
+//                    "    v_blurTexCoords[ 4] = v_texCoord + vec2(-0.012, 0.0);\n" +
+//                    "    v_blurTexCoords[ 5] = v_texCoord + vec2(-0.008, 0.0);\n" +
+//                    "    v_blurTexCoords[ 6] = v_texCoord + vec2(-0.004, 0.0);\n" +
+//                    "    v_blurTexCoords[ 7] = v_texCoord + vec2( 0.004, 0.0);\n" +
+//                    "    v_blurTexCoords[ 8] = v_texCoord + vec2( 0.008, 0.0);\n" +
+//                    "    v_blurTexCoords[ 9] = v_texCoord + vec2( 0.012, 0.0);\n" +
+//                    "    v_blurTexCoords[10] = v_texCoord + vec2( 0.016, 0.0);\n" +
+//                    "    v_blurTexCoords[11] = v_texCoord + vec2( 0.020, 0.0);\n" +
+//                    "    v_blurTexCoords[12] = v_texCoord + vec2( 0.024, 0.0);\n" +
+//                    "    v_blurTexCoords[13] = v_texCoord + vec2( 0.028, 0.0);\n" +
+//                    "}\n";
+
+
+    private static final String FRAGMENT_TEST =
+            "float smoothNoise(vec2 p) {\n" +
+                    "  vec2 nn = vec2(p.x, p.y+1.);\n" +
+                    "  vec2 ne = vec2(p.x+1., p.y+1.);\n" +
+                    "  vec2 ee = vec2(p.x+1., p.y);\n" +
+                    "  vec2 se = vec2(p.x+1., p.y-1.);\n" +
+                    "  vec2 ss = vec2(p.x, p.y-1.);\n" +
+                    "  vec2 sw = vec2(p.x-1., p.y-1.);\n" +
+                    "  vec2 ww = vec2(p.x-1., p.y);\n" +
+                    "  vec2 nw = vec2(p.x-1., p.y+1.);\n" +
+                    "  vec2 cc = vec2(p.x, p.y);\n" +
+                    " \n" +
+                    "  float sum = 0.;\n" +
+                    "  sum += randomNoise(nn);\n" +
+                    "  sum += randomNoise(ne);\n" +
+                    "  sum += randomNoise(ee);\n" +
+                    "  sum += randomNoise(se);\n" +
+                    "  sum += randomNoise(ss);\n" +
+                    "  sum += randomNoise(sw);\n" +
+                    "  sum += randomNoise(ww);\n" +
+                    "  sum += randomNoise(nw);\n" +
+                    "  sum += randomNoise(cc);\n" +
+                    "  sum /= 9.;\n" +
+                    " \n" +
+                    "  return sum;\n" +
+                    "}" +
+                    "void main(void) {\n" +
+                    "    vec2 position = gl_FragCoord.xy/uResolution.xx;\n" +
+                    "    float tiles = 128.;\n" +
+                    "    position = floor(position*tiles);\n" +
+                    "    float n = smoothNoise(position);\n" +
+                    "    gl_FragColor = vec4(vec3(n), 1.);\n" +
+                    "}\n";
+
+//            "[Vertex_Shader]\n" +
+//                    "void main(void)\n" +
+//                    "{\n" +
+//                    "  gl_Position = ftransform();\n" +
+//                    "  gl_TexCoord[0] = gl_MultiTexCoord0;\n" +
+//                    "}\n" +
+//                    "[Pixel_Shader]\n" +
+//                    "uniform sampler2D sceneTex; // 0\n" +
+//                    " \n" +
+//                    "uniform float rt_w; // render target width\n" +
+//                    "uniform float rt_h; // render target height\n" +
+//                    "uniform float vx_offset;\n" +
+//                    " \n" +
+//                    "float offset[3] = float[]( 0.0, 1.3846153846, 3.2307692308 );\n" +
+//                    "float weight[3] = float[]( 0.2270270270, 0.3162162162, 0.0702702703 );\n" +
+//                    " \n" +
+//                    "void main() \n" +
+//                    "{ \n" +
+//                    "  vec3 tc = vec3(1.0, 0.0, 0.0);\n" +
+//                    "  if (gl_TexCoord[0].x<(vx_offset-0.01))\n" +
+//                    "  {\n" +
+//                    "    vec2 uv = gl_TexCoord[0].xy;\n" +
+//                    "    tc = texture2D(sceneTex, uv).rgb * weight[0];\n" +
+//                    "    for (int i=1; i<3; i++) \n" +
+//                    "    {\n" +
+//                    "      tc += texture2D(sceneTex, uv + vec2(offset[i])/rt_w, 0.0).rgb \\\n" +
+//                    "              * weight[i];\n" +
+//                    "      tc += texture2D(sceneTex, uv - vec2(offset[i])/rt_w, 0.0).rgb \\\n" +
+//                    "              * weight[i];\n" +
+//                    "    }\n" +
+//                    "  }\n" +
+//                    "  else if (gl_TexCoord[0].x>=(vx_offset+0.01))\n" +
+//                    "  {\n" +
+//                    "    tc = texture2D(sceneTex, gl_TexCoord[0].xy).rgb;\n" +
+//                    "  }\n" +
+//                    "  gl_FragColor = vec4(tc, 1.0);\n" +
+//                    "}\n";
+
+//            "[Vertex_Shader]\n" +
+//                    "void main(void)\n" +
+//                    "{\n" +
+//                    "  gl_Position = ftransform();\n" +
+//                    "  gl_TexCoord[0] = gl_MultiTexCoord0;\n" +
+//                    "}\n" +
+//                    "[Pixel_Shader]\n" +
+//                    "uniform sampler2D sceneTex; // 0\n" +
+//                    " \n" +
+//                    "uniform float rt_w; // render target width\n" +
+//                    "uniform float rt_h; // render target height\n" +
+//                    "uniform float vx_offset;\n" +
+//                    " \n" +
+//                    "float offset[3] = float[]( 0.0, 1.3846153846, 3.2307692308 );\n" +
+//                    "float weight[3] = float[]( 0.2270270270, 0.3162162162, 0.0702702703 );\n" +
+//                    " \n" +
+//                    "void main() \n" +
+//                    "{ \n" +
+//                    "  vec3 tc = vec3(1.0, 0.0, 0.0);\n" +
+//                    "  if (gl_TexCoord[0].x<(vx_offset-0.01))\n" +
+//                    "  {\n" +
+//                    "    vec2 uv = gl_TexCoord[0].xy;\n" +
+//                    "    tc = texture2D(sceneTex, uv).rgb * weight[0];\n" +
+//                    "    for (int i=1; i<3; i++) \n" +
+//                    "    {\n" +
+//                    "      tc += texture2D(sceneTex, uv + vec2(0.0, offset[i])/rt_h).rgb \\\n" +
+//                    "              * weight[i];\n" +
+//                    "      tc += texture2D(sceneTex, uv - vec2(0.0, offset[i])/rt_h).rgb \\\n" +
+//                    "             * weight[i];\n" +
+//                    "    }\n" +
+//                    "  }\n" +
+//                    "  else if (gl_TexCoord[0].x>=(vx_offset+0.01))\n" +
+//                    "  {\n" +
+//                    "    tc = texture2D(sceneTex, gl_TexCoord[0].xy).rgb;\n" +
+//                    "  }\n" +
+//                    "  gl_FragColor = vec4(tc, 1.0);\n" +
+//                    "}\n";
+
+//            "uniform float sigma;     // The sigma value for the gaussian function: higher value means more blur\n" +
+//                    "                         // A good value for 9x9 is around 3 to 5\n" +
+//                    "                         // A good value for 7x7 is around 2.5 to 4\n" +
+//                    "                         // A good value for 5x5 is around 2 to 3.5\n" +
+//                    "                         // ... play around with this based on what you need :)\n" +
+//                    "\n" +
+//                    "uniform float blurSize;  // This should usually be equal to\n" +
+//                    "                         // 1.0f / texture_pixel_width for a horizontal blur, and\n" +
+//                    "                         // 1.0f / texture_pixel_height for a vertical blur.\n" +
+//                    "\n" +
+//                    "uniform sampler2D blurSampler;  // Texture that will be blurred by this shader\n" +
+//                    "\n" +
+//                    "const float pi = 3.14159265f;\n" +
+//                    "\n" +
+//                    "// The following are all mutually exclusive macros for various \n" +
+//                    "// seperable blurs of varying kernel size\n" +
+//                    "#if defined(VERTICAL_BLUR_9)\n" +
+//                    "const float numBlurPixelsPerSide = 4.0f;\n" +
+//                    "const vec2  blurMultiplyVec      = vec2(0.0f, 1.0f);\n" +
+//                    "#elif defined(HORIZONTAL_BLUR_9)\n" +
+//                    "const float numBlurPixelsPerSide = 4.0f;\n" +
+//                    "const vec2  blurMultiplyVec      = vec2(1.0f, 0.0f);\n" +
+//                    "#elif defined(VERTICAL_BLUR_7)\n" +
+//                    "const float numBlurPixelsPerSide = 3.0f;\n" +
+//                    "const vec2  blurMultiplyVec      = vec2(0.0f, 1.0f);\n" +
+//                    "#elif defined(HORIZONTAL_BLUR_7)\n" +
+//                    "const float numBlurPixelsPerSide = 3.0f;\n" +
+//                    "const vec2  blurMultiplyVec      = vec2(1.0f, 0.0f);\n" +
+//                    "#elif defined(VERTICAL_BLUR_5)\n" +
+//                    "const float numBlurPixelsPerSide = 2.0f;\n" +
+//                    "const vec2  blurMultiplyVec      = vec2(0.0f, 1.0f);\n" +
+//                    "#elif defined(HORIZONTAL_BLUR_5)\n" +
+//                    "const float numBlurPixelsPerSide = 2.0f;\n" +
+//                    "const vec2  blurMultiplyVec      = vec2(1.0f, 0.0f);\n" +
+//                    "#else\n" +
+//                    "// This only exists to get this shader to compile when no macros are defined\n" +
+//                    "const float numBlurPixelsPerSide = 0.0f;\n" +
+//                    "const vec2  blurMultiplyVec      = vec2(0.0f, 0.0f);\n" +
+//                    "#endif\n" +
+//                    "\n" +
+//                    "void main() {\n" +
+//                    "\n" +
+//                    "  // Incremental Gaussian Coefficent Calculation (See GPU Gems 3 pp. 877 - 889)\n" +
+//                    "  vec3 incrementalGaussian;\n" +
+//                    "  incrementalGaussian.x = 1.0f / (sqrt(2.0f * pi) * sigma);\n" +
+//                    "  incrementalGaussian.y = exp(-0.5f / (sigma * sigma));\n" +
+//                    "  incrementalGaussian.z = incrementalGaussian.y * incrementalGaussian.y;\n" +
+//                    "\n" +
+//                    "  vec4 avgValue = vec4(0.0f, 0.0f, 0.0f, 0.0f);\n" +
+//                    "  float coefficientSum = 0.0f;\n" +
+//                    "\n" +
+//                    "  // Take the central sample first...\n" +
+//                    "  avgValue += texture2D(blurSampler, gl_TexCoord[0].xy) * incrementalGaussian.x;\n" +
+//                    "  coefficientSum += incrementalGaussian.x;\n" +
+//                    "  incrementalGaussian.xy *= incrementalGaussian.yz;\n" +
+//                    "\n" +
+//                    "  // Go through the remaining 8 vertical samples (4 on each side of the center)\n" +
+//                    "  for (float i = 1.0f; i <= numBlurPixelsPerSide; i++) { \n" +
+//                    "    avgValue += texture2D(blurSampler, gl_TexCoord[0].xy - i * blurSize * \n" +
+//                    "                          blurMultiplyVec) * incrementalGaussian.x;         \n" +
+//                    "    avgValue += texture2D(blurSampler, gl_TexCoord[0].xy + i * blurSize * \n" +
+//                    "                          blurMultiplyVec) * incrementalGaussian.x;         \n" +
+//                    "    coefficientSum += 2 * incrementalGaussian.x;\n" +
+//                    "    incrementalGaussian.xy *= incrementalGaussian.yz;\n" +
+//                    "  }\n" +
+//                    "\n" +
+//                    "  gl_FragColor = avgValue / coefficientSum;\n" +
+//                    "}\n";
+
+//            "void main() {\n" +
+//                    "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n" +
+//                    "    gl_TexCoord[0] = gl_MultiTexCoord0;\n" +
+//                    "}\n";
+
+//            "#ifdef GL_ES\n" +
+//                    "precision mediump float;\n" +
+//                    "#endif\n" +
+//                    "varying vec2 vTexCoordA;\n" +
+//                    "varying vec2 vTexCoordB;\n" +
+//                    "uniform sampler2D u_texture;\n" +
+//                    "uniform float lerp;\n" +
+//                    "void main() {\n" +
+//                    "    //sample the two texture regions\n" +
+//                    "    vec4 texColorA = texture2D(u_texture, vTexCoordA);\n" +
+//                    "    vec4 texColorB = texture2D(u_texture, vTexCoordB);\n" +
+//                    "    //lerp between them\n" +
+//                    "    gl_FragColor = mix(texColorA, texColorB, lerp);\n" +
+//                    "}\n";
+
+//            "uniform float bias;\n" +
+//                    "void main() {\n" +
+//                    "    //sample from the texture using bias to influence LOD\n" +
+//                    "    vec4 texColor = texture2D(u_texture, vTexCoord, bias);\n" +
+//                    "    gl_FragColor = texColor * vColor;\n" +
+//                    "}\n";
+
+//            "precision mediump float;\n" +
+//                    "uniform sampler2D s_texture;\n" +
+//                    "varying vec2 v_texCoord;\n" +
+//                    "varying vec2 v_blurTexCoords[14];\n" +
+//                    "void main()\n" +
+//                    "{\n" +
+//                    "    gl_FragColor = vec4(0.0);\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 0])*0.0044299121055113265;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 1])*0.00895781211794;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 2])*0.0215963866053;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 3])*0.0443683338718;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 4])*0.0776744219933;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 5])*0.115876621105;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 6])*0.147308056121;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_texCoord         )*0.159576912161;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 7])*0.147308056121;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 8])*0.115876621105;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[ 9])*0.0776744219933;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[10])*0.0443683338718;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[11])*0.0215963866053;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[12])*0.00895781211794;\n" +
+//                    "    gl_FragColor += texture2D(s_texture, v_blurTexCoords[13])*0.0044299121055113265;\n" +
+//                    "}\n";
+
+//            "attribute vec4 position;\n" +
+//                    "attribute vec4 inputTextureCoordinate;\n" +
+//                    "uniform float texelWidthOffset;\n" +
+//                    "uniform float texelHeightOffset;\n" +
+//                    "varying vec2 blurCoordinates[5];\n" +
+//                    "void main()\n" +
+//                    "{\n" +
+//                    "gl_Position = position;\n" +
+//                    "vec2 singleStepOffset = vec2(texelWidthOffset, texelHeightOffset);\n" +
+//                    "blurCoordinates[0] = inputTextureCoordinate.xy;\n" +
+//                    "blurCoordinates[1] = inputTextureCoordinate.xy + singleStepOffset * 1.407333;\n" +
+//                    "blurCoordinates[2] = inputTextureCoordinate.xy - singleStepOffset * 1.407333;\n" +
+//                    "blurCoordinates[3] = inputTextureCoordinate.xy + singleStepOffset * 3.294215;\n" +
+//                    "blurCoordinates[4] = inputTextureCoordinate.xy - singleStepOffset * 3.294215;\n" +
+//                    "}\n";
+
+//            "uniform sampler2D inputImageTexture;\n" +
+//                    "uniform highp float texelWidthOffset;\n" +
+//                    "uniform highp float texelHeightOffset;\n" +
+//                    "varying highp vec2 blurCoordinates[5];\n" +
+//                    "void main()\n" +
+//                    "{\n" +
+//                    "lowp vec4 sum = vec4(0.0);\n" +
+//                    "sum += texture2D(inputImageTexture, blurCoordinates[0]) * 0.204164;\n" +
+//                    "sum += texture2D(inputImageTexture, blurCoordinates[1]) * 0.304005;\n" +
+//                    "sum += texture2D(inputImageTexture, blurCoordinates[2]) * 0.304005;\n" +
+//                    "sum += texture2D(inputImageTexture, blurCoordinates[3]) * 0.093913;\n" +
+//                    "sum += texture2D(inputImageTexture, blurCoordinates[4]) * 0.093913;\n" +
+//                    "gl_FragColor = sum;\n" +
+//                    "}\n";
+
 
     // Fragment shader with a convolution filter.  The upper-left half will be drawn normally,
     // the lower-right half will have the filter applied, and a thin red line will be drawn
@@ -150,6 +440,10 @@ public class Texture2dProgram {
             case TEXTURE_EXT_BW:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
                 mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_BW);
+                break;
+            case FRAGMENT_TEST:
+                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_TEST);
                 break;
             case TEXTURE_EXT_FILT:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;

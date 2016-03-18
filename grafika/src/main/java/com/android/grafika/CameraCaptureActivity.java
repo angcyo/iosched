@@ -16,6 +16,9 @@
 
 package com.android.grafika;
 
+import android.app.Activity;
+import android.graphics.SurfaceTexture;
+import android.hardware.Camera;
 import android.opengl.EGL14;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -30,10 +33,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.app.Activity;
-import android.graphics.SurfaceTexture;
-import android.hardware.Camera;
 
+import com.android.grafika.cge.CGEFrameRecorder;
 import com.android.grafika.gles.FullFrameRect;
 import com.android.grafika.gles.Texture2dProgram;
 
@@ -460,6 +461,11 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
     private int mCurrentFilter;
     private int mNewFilter;
 
+    protected int mRecordWidth = 1920;
+    protected int mRecordHeight = 480;
+
+    public static String LOG_TAG = "CameraSurfaceRenderer";
+    protected CGEFrameRecorder mFrameRecorder;
 
     /**
      * Constructs CameraSurfaceRenderer.
@@ -486,6 +492,14 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         // We could preserve the old filter mode, but currently not bothering.
         mCurrentFilter = -1;
         mNewFilter = CameraCaptureActivity.FILTER_NONE;
+    }
+
+    public synchronized void setFilterWithConfig(final String config) {
+        if (mFrameRecorder != null) {
+            mFrameRecorder.setFilterWidthConfig(config);
+        } else {
+            Log.e(LOG_TAG, "setFilterWithConfig after release!!");
+        }
     }
 
     /**
@@ -577,7 +591,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
                 colorAdj = 0.5f;
                 break;
             case CameraCaptureActivity.FILTER_TEST:
-                programType = Texture2dProgram.ProgramType.TEXTURE_EXT;
+                programType = Texture2dProgram.ProgramType.FRAGMENT_TEST;
 
                 break;
             default:
@@ -639,6 +653,16 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
         // have a Looper in this thread -- GLSurfaceView doesn't create one -- so the frame
         // available messages will arrive on the main thread.
         mSurfaceTexture = new SurfaceTexture(mTextureId);
+
+
+        mFrameRecorder = new CGEFrameRecorder();
+        if(!mFrameRecorder.init(mRecordWidth, mRecordHeight, mRecordWidth, mRecordHeight)) {
+            Log.e(LOG_TAG, "Frame Recorder init failed!");
+        }
+
+        mFrameRecorder.setSrcRotation((float) (Math.PI / 2.0));
+        mFrameRecorder.setSrcFlipScale(1.0f, -1.0f);
+        mFrameRecorder.setRenderFlipScale(1.0f, -1.0f);
 
         // Tell the UI thread to enable the camera preview.
         mCameraHandler.sendMessage(mCameraHandler.obtainMessage(

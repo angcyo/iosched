@@ -107,6 +107,7 @@
         <item>Filter: sharpen</item>
         <item>Filter: edge detect</item>
         <item>Filter: emboss</item>
+        <item>Filter: test</item>
     </string-array>
 
     <!-- for scheduledSwapUpdate_spinner; match with UPDATE_PATTERNS -->

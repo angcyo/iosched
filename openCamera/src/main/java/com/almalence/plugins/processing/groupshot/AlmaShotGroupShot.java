@@ -38,7 +38,7 @@ public final class AlmaShotGroupShot
 	public static synchronized native int Release(int nFrames);
 
 	/**
-	 * Prepare YUV buffer in native for Face detection engine
+	 * Prepare YUV buffer in cge for Face detection engine
 	 * 
 	 * @param frame
 	 *            array of YUV frame buffers

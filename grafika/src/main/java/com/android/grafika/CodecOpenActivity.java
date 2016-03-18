@@ -108,7 +108,7 @@ public class CodecOpenActivity extends Activity {
     /**
      * onClick handler for "GC" button.
      * <p>
-     * Initiates manual garbage collection.  Some of the native stuff might not get cleaned up
+     * Initiates manual garbage collection.  Some of the cge stuff might not get cleaned up
      * until finalizers run, so we request those too.
      */
     public void clickGc(@SuppressWarnings("unused") View unused) {
