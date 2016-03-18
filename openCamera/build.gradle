@@ -9,9 +9,9 @@ android {
         minSdkVersion 14
         targetSdkVersion 23
 
-//        ndk {
-//            moduleName "bento4"
-//        }
+        ndk {
+            moduleName "bento4"
+        }
     }
 
     buildTypes {
