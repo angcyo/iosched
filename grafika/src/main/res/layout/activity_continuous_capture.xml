@@ -55,7 +55,7 @@
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
         android:background="@android:color/holo_red_dark"
-        android:layout_height="300dp" />
+        android:layout_height="200dp" />
 
     <TextView
         android:id="@+id/recording_text"

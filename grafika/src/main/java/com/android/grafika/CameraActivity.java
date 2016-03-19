@@ -30,7 +30,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Handler;
 
-public class CameraActivity extends Activity implements SurfaceHolder.Callback {
+public class CameraActivity extends Activity
+//        implements SurfaceHolder.Callback
+{
     public static final String ENCODING = "h264";
     public static CameraActivity activity;
     public static byte[] SPS = null;
@@ -174,7 +176,6 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
         }
         setContentView(ll);
 
-
         socket = new UdpSocket();
         new Thread(socket).start();
     }
@@ -186,18 +187,18 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     protected void onPause() {
         super.onPause();
-        mPreviewRunning = false;
-        if (cameraSurfaceView != null && cameraSurfaceView.isEnabled())
-            cameraSurfaceView.setEnabled(false);
-        cameraSurfaceView = null;
-        if (mCamera != null) {
-            mCamera.stopPreview();
-            mCamera.release();
-        }
-        System.exit(0);
-        mMediaCodec.stop();
-        mMediaCodec.release();
-        mMediaCodec = null;
+//        mPreviewRunning = false;
+//        if (cameraSurfaceView != null && cameraSurfaceView.isEnabled())
+//            cameraSurfaceView.setEnabled(false);
+//        cameraSurfaceView = null;
+//        if (mCamera != null) {
+//            mCamera.stopPreview();
+//            mCamera.release();
+//        }
+//        System.exit(0);
+//        mMediaCodec.stop();
+//        mMediaCodec.release();
+//        mMediaCodec = null;
     }
 
     /**
@@ -353,16 +354,16 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
                         e.printStackTrace();
                     }
                     Log.d("EncodeDecode", "frame enqueued. queue size now: " + queue.size());
-                    if (firstTime) {
-                        Log.d("EncodeDecode", "adding a surface to layout for decoder");
-                        SurfaceView sv = new SurfaceView(getApplicationContext());
-                        //handler = new Handler();
-                        sv.getHolder().addCallback(CameraActivity.this);
-                        sv.setLayoutParams(new FrameLayout.LayoutParams(width, height));
-                        ll.addView(sv, 1);
-                        CameraActivity.this.setContentView(ll);
-                        firstTime = false;
-                    }
+//                    if (firstTime) {
+//                        Log.d("EncodeDecode", "adding a surface to layout for decoder");
+//                        SurfaceView sv = new SurfaceView(getApplicationContext());
+//                        //handler = new Handler();
+//                        sv.getHolder().addCallback(CameraActivity.this);
+//                        sv.setLayoutParams(new FrameLayout.LayoutParams(width, height));
+//                        ll.addView(sv, 1);
+//                        CameraActivity.this.setContentView(ll);
+//                        firstTime = false;
+//                    }
                 }
                 frameID++;
                 mMediaCodec.releaseOutputBuffer(outputBufferIndex, false);
@@ -383,27 +384,27 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
      * ========================================================================
      */
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        Log.d("EncodeDecode", "mainActivity surfaceCreated");
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.d("EncodeDecode", "mainActivity surfaceChanged.");
-        if (mPlayer == null) {
-            mPlayer = new PlayerThread(holder.getSurface());
-            mPlayer.start();
-            Log.d("EncodeDecode", "PlayerThread started");
-        }
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        if (mPlayer != null) {
-            mPlayer.interrupt();
-        }
-    }
+//    @Override
+//    public void surfaceCreated(SurfaceHolder holder) {
+//        Log.d("EncodeDecode", "mainActivity surfaceCreated");
+//    }
+//
+//    @Override
+//    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+//        Log.d("EncodeDecode", "mainActivity surfaceChanged.");
+//        if (mPlayer == null) {
+//            mPlayer = new PlayerThread(holder.getSurface());
+//            mPlayer.start();
+//            Log.d("EncodeDecode", "PlayerThread started");
+//        }
+//    }
+//
+//    @Override
+//    public void surfaceDestroyed(SurfaceHolder holder) {
+//        if (mPlayer != null) {
+//            mPlayer.interrupt();
+//        }
+//    }
 
     private static class Frame {
         public int id;
@@ -533,7 +534,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
                 p.setPreviewSize(width, height);
                 p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
 //                p.setPreviewFormat(ImageFormat.NV21);
-//                p.setPreviewFormat(ImageFormat.YV12);
+                p.setPreviewFormat(ImageFormat.YV12);
                 mCamera.setParameters(p);
                 mCamera.setPreviewDisplay(holder);
                 mCamera.setPreviewCallback(new Camera.PreviewCallback() {
@@ -556,44 +557,46 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
         }
 
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            if (mPreviewRunning) {
-                mCamera.stopPreview();
-                Log.e("EncodeDecode", "preview stopped");
-            }
-            try {
-                if (mCamera == null) {
-                    mCamera = Camera.open();
-                    mCamera.setDisplayOrientation(90);
-                }
-                Camera.Parameters p = mCamera.getParameters();
-                p.setPreviewSize(width, height);
-                p.setPreviewFormat(ImageFormat.YV12);
-                p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
-                mCamera.setParameters(p);
-                mCamera.setPreviewDisplay(holder);
-                mCamera.unlock();
-                mCamera.reconnect();
-                mCamera.setPreviewCallback(new Camera.PreviewCallback() {
-                    @Override
-                    public void onPreviewFrame(byte[] data, Camera camera) {
-                        Log.d("EncodeDecode", "onPreviewFrame, calling encode function");
-                        encode(data);
-                    }
-                });
-                Log.d("EncodeDecode", "previewCallBack set");
-                mCamera.startPreview();
-                mPreviewRunning = true;
-            } catch (Exception e) {
-                Log.e("EncodeDecode", "surface changed:set preview display failed");
-                e.printStackTrace();
-            }
+//            if (mPreviewRunning) {
+//                mCamera.stopPreview();
+//                Log.e("EncodeDecode", "preview stopped");
+//            }
+//            try {
+//                if (mCamera == null) {
+//                    mCamera = Camera.open();
+//                    mCamera.setDisplayOrientation(90);
+//                }
+//                Camera.Parameters p = mCamera.getParameters();
+//                p.setPreviewSize(width, height);
+//                p.setPreviewFormat(ImageFormat.YV12);
+//                p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+//                mCamera.setParameters(p);
+//                mCamera.setPreviewDisplay(holder);
+//                mCamera.unlock();
+//                mCamera.reconnect();
+//                mCamera.setPreviewCallback(new Camera.PreviewCallback() {
+//                    @Override
+//                    public void onPreviewFrame(byte[] data, Camera camera) {
+//                        Log.d("EncodeDecode", "onPreviewFrame, calling encode function");
+//                        encode(data);
+//                    }
+//                });
+//                Log.d("EncodeDecode", "previewCallBack set");
+//                mCamera.startPreview();
+//                mPreviewRunning = true;
+//            } catch (Exception e) {
+//                Log.e("EncodeDecode", "surface changed:set preview display failed");
+//                e.printStackTrace();
+//            }
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
-            mCamera.stopPreview();
-            mCamera.unlock();
-            mCamera.release();
-            mCamera = null;
+            if (mCamera != null) {
+                mCamera.stopPreview();
+//            mCamera.unlock();
+                mCamera.release();
+                mCamera = null;
+            }
         }
     }
 

@@ -730,7 +730,8 @@ public class TextureFromCameraActivity extends Activity implements SurfaceHolder
             int numCameras = Camera.getNumberOfCameras();
             for (int i = 0; i < numCameras; i++) {
                 Camera.getCameraInfo(i, info);
-                if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+//                if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                     mCamera = Camera.open(i);
                     break;
                 }
