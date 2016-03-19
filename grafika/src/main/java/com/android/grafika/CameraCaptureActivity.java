@@ -34,9 +34,10 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.android.grafika.cge.CGEFrameRecorder;
 import com.android.grafika.gles.FullFrameRect;
 import com.android.grafika.gles.Texture2dProgram;
+
+import org.wysaid.nativePort.CGEFrameRecorder;
 
 import java.io.File;
 import java.io.IOException;

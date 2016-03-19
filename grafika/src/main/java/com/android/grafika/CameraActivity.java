@@ -273,6 +273,8 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
         return yuv;
     }
 
+    long sendDataIndex = 0;
+
     /**
      * When camera receives a frame this function is called with the frame data as its parameter. It encodes the given data and then stores in frameQueue.
      */
@@ -330,7 +332,9 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback {
                 printByteArray(frame.frameData);
 
                 //发送数据
-                socket.setData(frame.frameData);
+//                byte[] sendData = new byte[1024];
+//                System.arraycopy(sendData, 0, );
+//                socket.setData(sendData);
 
                 // if encoding type is h264 and sps & pps is ready then, enqueueing the frame in the queue
                 // if encoding type is h263 then, enqueueing the frame in the queue

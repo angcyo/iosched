@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-include ':android', ':server', ':udpserver'
+include ':android', ':server', ':udpserver', ':drivevideo'
 //include 'gpuimage_sample'
 //include 'library'
 include ':grafika'
+//include ':commonlib'
+//include ':scf4a'
 include ':android_packages_apps_Focal'
 include ':openCamera'
