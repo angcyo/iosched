@@ -17,7 +17,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 
-
+import java.io.IOException;
 import java.util.Vector;
 
 import jp.co.cyberagent.android.gpuimage.GPUImageNativeLibrary;
@@ -79,6 +79,12 @@ public class StartTakePhotoView extends SurfaceView implements SurfaceHolder.Cal
         mCameraManager.setDispaly(mCamera);
         mCamera.setPreviewCallback(this);
         mCameraExist = true;
+
+//        try {
+//            mCamera.setPreviewDisplay(holder);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -172,7 +178,7 @@ public class StartTakePhotoView extends SurfaceView implements SurfaceHolder.Cal
             //图片缩放
             bitmap = scaleImage(bitmap, (float) width / bitmap.getWidth(), (float) height / bitmap.getHeight());
 
-            draw(bitmap);
+//            draw(bitmap);
             return true;
         }
 
