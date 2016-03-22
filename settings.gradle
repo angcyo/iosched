@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-include ':android', ':server', ':udpserver', ':drivevideo', ':camerademo', ':drivevideodemo'
+include ':android', ':server', ':udpserver', ':drivevideo', ':camerademo', ':drivevideodemo', ':libstreaming'
 //include 'gpuimage_sample'
 //include 'library'
 include ':grafika'
